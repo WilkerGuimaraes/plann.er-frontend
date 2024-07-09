@@ -1,14 +1,18 @@
 import {
   ArrowRight,
+  AtSign,
   Calendar,
   MapPin,
+  Plus,
   Settings2,
   UserRoundPlus,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 
 export function App() {
   const [isGuestsInputOpen, setIsGuestsInputOpen] = useState(false);
+  const [isGuestsModalOpen, setIsGuestsModalOpen] = useState(false);
 
   function openGuestsInput() {
     setIsGuestsInputOpen(true);
@@ -16,6 +20,14 @@ export function App() {
 
   function closeGuestsInput() {
     setIsGuestsInputOpen(false);
+  }
+
+  function openGuestsModal() {
+    setIsGuestsModalOpen(true);
+  }
+
+  function closeGuestsModal() {
+    setIsGuestsModalOpen(false);
   }
 
   return (
@@ -73,14 +85,16 @@ export function App() {
 
           {isGuestsInputOpen && (
             <div className="shadow-shape flex h-16 items-center gap-3 rounded-lg bg-zinc-900 px-4">
-              <div className="flex flex-1 items-center gap-2">
+              <button
+                type="button"
+                onClick={openGuestsModal}
+                className="flex flex-1 items-center gap-2 text-left"
+              >
                 <UserRoundPlus className="size-5 text-zinc-400" />
-                <input
-                  type="text"
-                  placeholder="Quem estará na viagem?"
-                  className="flex-1 bg-transparent text-lg placeholder-zinc-400 outline-none"
-                />
-              </div>
+                <span className="flex-1 text-lg text-zinc-400">
+                  Quem estará na viagem?
+                </span>
+              </button>
 
               <div className="h-6 w-px bg-zinc-800" />
 
@@ -108,6 +122,58 @@ export function App() {
           .
         </p>
       </div>
+
+      {isGuestsModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60">
+          <div className="shadow-shape w-[640px] space-y-5 rounded-xl bg-zinc-900 px-6 py-5">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Selecionar convidados</h2>
+
+                <button type="button" onClick={closeGuestsModal}>
+                  <X className="size-5 text-zinc-400" />
+                </button>
+              </div>
+
+              <p className="text-sm text-zinc-400">
+                Os convidados irão receber e-mails para confirmar a participação
+                na viagem.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <div className="flex items-center gap-2 rounded-md bg-zinc-800 px-2.5 py-1.5">
+                <span className="text-zinc-300">jessica.white44@yahoo.com</span>
+                <button type="button" className="">
+                  <X className="size-4 text-zinc-400" />
+                </button>
+              </div>
+            </div>
+
+            <div className="h-px w-full bg-zinc-900" />
+
+            <form className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 p-2.5">
+              <div className="flex flex-1 items-center gap-2 px-2">
+                <AtSign className="size-5 text-zinc-400" />
+                <input
+                  type="text"
+                  placeholder="Digite o e-mail do convidado"
+                  className="flex-1 bg-transparent text-lg placeholder-zinc-400 outline-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                onClick={openGuestsInput}
+                className="flex items-center gap-2 rounded-lg bg-lime-300 px-5 py-2 font-medium text-lime-950 hover:bg-lime-400"
+              >
+                Convidar
+                <Plus className="size-5" />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
