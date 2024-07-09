@@ -8,11 +8,16 @@ import {
   UserRoundPlus,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 
 export function App() {
   const [isGuestsInputOpen, setIsGuestsInputOpen] = useState(false);
   const [isGuestsModalOpen, setIsGuestsModalOpen] = useState(false);
+
+  const [emailsToInvite, setEmailsToInvite] = useState([
+    "wilkerguimaraes.07@gmail.com",
+    "john@acme.com",
+  ]);
 
   function openGuestsInput() {
     setIsGuestsInputOpen(true);
@@ -28,6 +33,29 @@ export function App() {
 
   function closeGuestsModal() {
     setIsGuestsModalOpen(false);
+  }
+
+  function addNewEmailToInvite(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const data = new FormData(event.currentTarget);
+    const email = data.get("email")?.toString();
+
+    if (!email) return;
+
+    if (emailsToInvite.includes(email)) return;
+
+    setEmailsToInvite([...emailsToInvite, email]);
+
+    event.currentTarget.reset();
+  }
+
+  function removeEmailFromInvites(emailToRemove: string) {
+    const newEmailList = emailsToInvite.filter(
+      (email) => email !== emailToRemove,
+    );
+
+    setEmailsToInvite(newEmailList);
   }
 
   return (
@@ -142,21 +170,33 @@ export function App() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <div className="flex items-center gap-2 rounded-md bg-zinc-800 px-2.5 py-1.5">
-                <span className="text-zinc-300">jessica.white44@yahoo.com</span>
-                <button type="button" className="">
-                  <X className="size-4 text-zinc-400" />
-                </button>
-              </div>
+              {emailsToInvite.map((email) => (
+                <div
+                  key={email}
+                  className="flex items-center gap-2 rounded-md bg-zinc-800 px-2.5 py-1.5"
+                >
+                  <span className="text-zinc-300">{email}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeEmailFromInvites(email)}
+                  >
+                    <X className="size-4 text-zinc-400" />
+                  </button>
+                </div>
+              ))}
             </div>
 
             <div className="h-px w-full bg-zinc-900" />
 
-            <form className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 p-2.5">
+            <form
+              onSubmit={addNewEmailToInvite}
+              className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 p-2.5"
+            >
               <div className="flex flex-1 items-center gap-2 px-2">
                 <AtSign className="size-5 text-zinc-400" />
                 <input
-                  type="text"
+                  type="email"
+                  name="email"
                   placeholder="Digite o e-mail do convidado"
                   className="flex-1 bg-transparent text-lg placeholder-zinc-400 outline-none"
                 />
