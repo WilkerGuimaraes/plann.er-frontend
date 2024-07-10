@@ -1,15 +1,10 @@
-import {
-  ArrowRight,
-  Calendar,
-  MapPin,
-  Settings2,
-  UserRoundPlus,
-} from "lucide-react";
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { InviteGuestsModal } from "./invite-guests-modal";
 import { ConfirmTripModal } from "./confirm-trip-modal";
+import { DestinationAndDateStep } from "./steps/destination-and-date-step";
+import { InviteGuestsSteps } from "./steps/invite-guests-step";
 
 export function CreateTripPage() {
   const navigate = useNavigate();
@@ -87,77 +82,18 @@ export function CreateTripPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="shadow-shape flex h-16 items-center gap-3 rounded-lg bg-zinc-900 px-4">
-            <div className="flex flex-1 items-center gap-2">
-              <MapPin className="size-5 text-zinc-400" />
-              <input
-                type="text"
-                disabled={isGuestsInputOpen}
-                placeholder="Para onde você vai?"
-                className="flex-1 bg-transparent text-lg placeholder-zinc-400 outline-none"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Calendar className="size-5 text-zinc-400" />
-              <input
-                type="text"
-                disabled={isGuestsInputOpen}
-                placeholder="Quando?"
-                className="w-40 bg-transparent text-lg placeholder-zinc-400 outline-none"
-              />
-            </div>
-
-            <div className="h-6 w-px bg-zinc-800" />
-
-            {isGuestsInputOpen ? (
-              <button
-                onClick={closeGuestsInput}
-                className="text-zinc-250 flex items-center gap-2 rounded-lg bg-zinc-800 px-5 py-2 font-medium hover:bg-zinc-700"
-              >
-                Alterar local/data
-                <Settings2 className="size-5" />
-              </button>
-            ) : (
-              <button
-                onClick={openGuestsInput}
-                className="flex items-center gap-2 rounded-lg bg-lime-300 px-5 py-2 font-medium text-lime-950 hover:bg-lime-400"
-              >
-                Continuar
-                <ArrowRight className="size-5" />
-              </button>
-            )}
-          </div>
+          <DestinationAndDateStep
+            isGuestsInputOpen={isGuestsInputOpen}
+            closeGuestsInput={closeGuestsInput}
+            openGuestsInput={openGuestsInput}
+          />
 
           {isGuestsInputOpen && (
-            <div className="shadow-shape flex h-16 items-center gap-3 rounded-lg bg-zinc-900 px-4">
-              <button
-                type="button"
-                onClick={openGuestsModal}
-                className="flex flex-1 items-center gap-2 text-left"
-              >
-                <UserRoundPlus className="size-5 text-zinc-400" />
-                {emailsToInvite.length > 0 ? (
-                  <span className="text-zinc-100">
-                    {emailsToInvite.length} pessoa(s) convidada(s)
-                  </span>
-                ) : (
-                  <span className="flex-1 text-lg text-zinc-400">
-                    Quem estará na viagem?
-                  </span>
-                )}
-              </button>
-
-              <div className="h-6 w-px bg-zinc-800" />
-
-              <button
-                onClick={openConfirmTripModal}
-                className="flex items-center gap-2 rounded-lg bg-lime-300 px-5 py-2 font-medium text-lime-950 hover:bg-lime-400"
-              >
-                Confirmar viagem
-                <ArrowRight className="size-5" />
-              </button>
-            </div>
+            <InviteGuestsSteps
+              emailsToInvite={emailsToInvite}
+              openConfirmTripModal={openConfirmTripModal}
+              openGuestsModal={openGuestsModal}
+            />
           )}
         </div>
 
