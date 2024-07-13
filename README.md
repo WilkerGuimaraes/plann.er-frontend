@@ -8,6 +8,11 @@ Esta é um projeto full-stack no qual foi desenvolvido uma aplicação para o ge
 
 ![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white) ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB) ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white) ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
 
+## 🧰 Recursos
+
+- `react-router-dom`: é uma biblioteca muito útil para criar aplicações React com múltiplas páginas ou rotas.
+- `axios`: é uma biblioteca de cliente HTTP baseada em Promises para fazer requisições tanto no navegador quanto em Node.js.
+
 ## 💻 Executando
 
 ⚠<b>Atenção!</b>⚠
