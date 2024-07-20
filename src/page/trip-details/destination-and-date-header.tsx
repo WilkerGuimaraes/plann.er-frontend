@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 
 import { Button } from "../../components/button";
 import { api } from "../../lib/axios";
+import { UpdateDestinationAndDateModal } from "./update-destination-and-date-modal";
 
 interface Trip {
   id: string;
@@ -20,7 +21,6 @@ export function DestinationAndDateHeader() {
 
   useEffect(() => {
     api.get(`/trips/${tripId}`).then((response) => setTrip(response.data.trip));
-    console.log(tripId);
   }, [tripId]);
 
   const displayedDate = trip
@@ -29,26 +29,50 @@ export function DestinationAndDateHeader() {
         .concat(format(trip.ends_at, "d' de 'LLL"))
     : null;
 
-  return (
-    <div className="flex h-16 items-center justify-between rounded-lg bg-zinc-900 px-4">
-      <div className="flex items-center gap-2">
-        <MapPin className="size-5 text-zinc-400" />
-        <span className="text-zinc-100">{trip?.destination}</span>
-      </div>
+  const [updateDestinationAndDateModal, setUpdateDestinationAndDateModal] =
+    useState(false);
 
-      <div className="flex items-center gap-5">
+  function openUpdateDestinationAndDateModal() {
+    setUpdateDestinationAndDateModal(true);
+  }
+
+  function closeUpdateDestinationAndDateModal() {
+    setUpdateDestinationAndDateModal(false);
+  }
+
+  return (
+    <div>
+      <div className="flex h-16 items-center justify-between rounded-lg bg-zinc-900 px-4">
         <div className="flex items-center gap-2">
-          <Calendar className="size-5 text-zinc-400" />
-          <span className="text-zinc-100">{displayedDate}</span>
+          <MapPin className="size-5 text-zinc-400" />
+          <span className="text-zinc-100">{trip?.destination}</span>
         </div>
 
-        <div className="h-6 w-px bg-zinc-800" />
+        <div className="flex items-center gap-5">
+          <div className="flex items-center gap-2">
+            <Calendar className="size-5 text-zinc-400" />
+            <span className="text-zinc-100">{displayedDate}</span>
+          </div>
 
-        <Button variant="secondary">
-          Alterar local/data
-          <Settings2 className="size-5" />
-        </Button>
+          <div className="h-6 w-px bg-zinc-800" />
+
+          <Button
+            variant="secondary"
+            onClick={openUpdateDestinationAndDateModal}
+          >
+            Alterar local/data
+            <Settings2 className="size-5" />
+          </Button>
+        </div>
       </div>
+
+      {updateDestinationAndDateModal && (
+        <UpdateDestinationAndDateModal
+          closeUpdateDestinationAndDateModal={
+            closeUpdateDestinationAndDateModal
+          }
+        />
+      )}
     </div>
   );
 }
