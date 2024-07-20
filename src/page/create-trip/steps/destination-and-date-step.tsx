@@ -2,9 +2,10 @@ import { MapPin, Calendar, Settings2, ArrowRight, X } from "lucide-react";
 import { useState } from "react";
 import { DateRange, DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 import { Button } from "../../../components/button";
-import { format } from "date-fns";
 
 interface DestinationAndDateStepProps {
   isGuestsInputOpen: boolean;
@@ -37,9 +38,11 @@ export function DestinationAndDateStep({
     eventStartAndEndDates &&
     eventStartAndEndDates.from &&
     eventStartAndEndDates.to
-      ? format(eventStartAndEndDates.from, "d' de 'LLL")
+      ? format(eventStartAndEndDates.from, "d' de 'LLL", { locale: ptBR })
           .concat(" até ")
-          .concat(format(eventStartAndEndDates.to, "d' de 'LLL"))
+          .concat(
+            format(eventStartAndEndDates.to, "d' de 'LLL", { locale: ptBR }),
+          )
       : null;
 
   return (
@@ -82,6 +85,9 @@ export function DestinationAndDateStep({
                 mode="range"
                 selected={eventStartAndEndDates}
                 onSelect={setEventStartAndEndDates}
+                classNames={{
+                  day_selected: "bg-lime-300",
+                }}
               />
             </div>
           </div>

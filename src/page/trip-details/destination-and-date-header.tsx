@@ -1,6 +1,7 @@
 import { MapPin, Calendar, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { useParams } from "react-router-dom";
 
 import { Button } from "../../components/button";
@@ -24,9 +25,9 @@ export function DestinationAndDateHeader() {
   }, [tripId]);
 
   const displayedDate = trip
-    ? format(trip.starts_at, "d' de 'LLL")
+    ? format(trip.starts_at, "d' de 'LLL", { locale: ptBR })
         .concat(" até ")
-        .concat(format(trip.ends_at, "d' de 'LLL"))
+        .concat(format(trip.ends_at, "d' de 'LLL", { locale: ptBR }))
     : null;
 
   const [updateDestinationAndDateModal, setUpdateDestinationAndDateModal] =

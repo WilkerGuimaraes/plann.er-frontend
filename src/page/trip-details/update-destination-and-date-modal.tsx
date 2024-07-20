@@ -2,6 +2,7 @@ import { X, MapPin, Calendar } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { FormEvent, useState } from "react";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { DateRange, DayPicker } from "react-day-picker";
 
 import { Button } from "../../components/button";
@@ -52,9 +53,11 @@ export function UpdateDestinationAndDateModal({
     eventStartAndEndDates &&
     eventStartAndEndDates.from &&
     eventStartAndEndDates.to
-      ? format(eventStartAndEndDates.from, "d' de 'LLL")
+      ? format(eventStartAndEndDates.from, "d' de 'LLL", { locale: ptBR })
           .concat(" até ")
-          .concat(format(eventStartAndEndDates.to, "d' de 'LLL"))
+          .concat(
+            format(eventStartAndEndDates.to, "d' de 'LLL", { locale: ptBR }),
+          )
       : null;
 
   return (
@@ -111,6 +114,9 @@ export function UpdateDestinationAndDateModal({
                     mode="range"
                     selected={eventStartAndEndDates}
                     onSelect={setEventStartAndEndDates}
+                    classNames={{
+                      day_selected: "bg-lime-300",
+                    }}
                   />
                 </div>
               </div>
