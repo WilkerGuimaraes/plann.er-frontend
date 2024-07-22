@@ -1,6 +1,9 @@
 import { X, Tag, Calendar } from "lucide-react";
 import { useParams } from "react-router-dom";
-import { FormEvent } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "../../components/button";
 import { api } from "../../lib/axios";
@@ -9,25 +12,41 @@ interface CreateActivityModalProps {
   closeCreateActivityModal: () => void;
 }
 
+const activityFormSchema = z.object({
+  title: z.string().min(1, { message: "O título é obrigatório." }),
+  occurs_at: z.string(),
+});
+
+type ActivityFormSchema = z.infer<typeof activityFormSchema>;
+
 export function CreateActivityModal({
   closeCreateActivityModal,
 }: CreateActivityModalProps) {
   const { tripId } = useParams();
 
-  async function createActivity(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const queryClient = useQueryClient();
 
-    const data = new FormData(event.currentTarget);
+  const { register, handleSubmit } = useForm<ActivityFormSchema>({
+    resolver: zodResolver(activityFormSchema),
+  });
 
-    const title = data.get("title")?.toString();
-    const occurs_at = data.get("occurs_at")?.toString();
+  const { mutateAsync } = useMutation({
+    mutationFn: async ({ title, occurs_at }: ActivityFormSchema) => {
+      await api.post(`/trips/${tripId}/activities`, {
+        title,
+        occurs_at,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get-activities", tripId],
+      });
+      closeCreateActivityModal();
+    },
+  });
 
-    await api.post(`/trips/${tripId}/activities`, {
-      title,
-      occurs_at,
-    });
-
-    window.document.location.reload();
+  async function createActivity({ title, occurs_at }: ActivityFormSchema) {
+    await mutateAsync({ title, occurs_at });
   }
 
   return (
@@ -47,12 +66,12 @@ export function CreateActivityModal({
           </p>
         </div>
 
-        <form onSubmit={createActivity} className="space-y-3">
+        <form onSubmit={handleSubmit(createActivity)} className="space-y-3">
           <div className="flex h-14 items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-4">
             <Tag className="size-5 text-zinc-400" />
             <input
               type="text"
-              name="title"
+              {...register("title")}
               placeholder="Qual a atividade?"
               className="flex-1 bg-transparent text-lg placeholder-zinc-400 outline-none"
             />
@@ -62,7 +81,7 @@ export function CreateActivityModal({
             <Calendar className="size-5 text-zinc-400" />
             <input
               type="datetime-local"
-              name="occurs_at"
+              {...register("occurs_at")}
               placeholder="Data e horário da atividade"
               className="flex-1 bg-transparent text-lg placeholder-zinc-400 outline-none"
             />
