@@ -1,6 +1,7 @@
 import { CheckCircle2, CircleDashed, UserCog } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "../../components/button";
 
@@ -16,14 +17,15 @@ interface Participant {
 
 export function Guests() {
   const { tripId } = useParams();
-  const [participants, setParticipants] = useState<Participant[]>([]);
 
-  useEffect(() => {
-    api
-      .get(`/trips/${tripId}/participants`)
-      .then((response) => setParticipants(response.data.participants));
-    console.log(tripId);
-  }, [tripId]);
+  const { data: participants } = useQuery<Participant[]>({
+    queryKey: ["get-participants", tripId],
+    queryFn: async () => {
+      const response = await api.get(`/trips/${tripId}/participants`);
+
+      return response.data.participants;
+    },
+  });
 
   const [inviteGuestsModal, setInviteGuestsModal] = useState(false);
 
@@ -41,7 +43,7 @@ export function Guests() {
         <h2 className="text-xl font-semibold">Convidados</h2>
 
         <div className="space-y-5">
-          {participants.map((participant, index) => (
+          {participants?.map((participant, index) => (
             <div
               key={participant.id}
               className="flex items-center justify-between gap-4"

@@ -1,6 +1,9 @@
-import { X, Mail } from "lucide-react";
+import { X, Mail, Loader2 } from "lucide-react";
 import { useParams } from "react-router-dom";
-import { FormEvent } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 import { Button } from "../../components/button";
 import { api } from "../../lib/axios";
@@ -9,23 +12,42 @@ interface InviteGuestsModalModalProps {
   closeInviteGuestsModalModal: () => void;
 }
 
+const inviteFormSchema = z.object({
+  email: z.string().email("O e-mail é obrigatório."),
+});
+
+type InviteFormSchema = z.infer<typeof inviteFormSchema>;
+
 export function InviteGuestsModalModal({
   closeInviteGuestsModalModal,
 }: InviteGuestsModalModalProps) {
   const { tripId } = useParams();
 
-  async function createLink(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const queryClient = useQueryClient();
 
-    const data = new FormData(event.currentTarget);
+  const { register, handleSubmit, formState } = useForm<InviteFormSchema>({
+    resolver: zodResolver(inviteFormSchema),
+  });
 
-    const email = data.get("email")?.toString();
+  const { mutateAsync } = useMutation({
+    mutationFn: async ({ email }: InviteFormSchema) => {
+      // delay 1.5s
+      await new Promise((resolve) => setTimeout(resolve, 10000));
 
-    await api.post(`/trips/${tripId}/invites`, {
-      email,
-    });
+      await api.post(`/trips/${tripId}/invites`, {
+        email,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get-participants", tripId],
+      });
+      closeInviteGuestsModalModal();
+    },
+  });
 
-    window.document.location.reload();
+  async function createInvite({ email }: InviteFormSchema) {
+    await mutateAsync({ email });
   }
 
   return (
@@ -45,19 +67,32 @@ export function InviteGuestsModalModal({
           </p>
         </div>
 
-        <form onSubmit={createLink} className="space-y-3">
+        <form onSubmit={handleSubmit(createInvite)} className="space-y-3">
           <div className="flex h-14 items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-4">
             <Mail className="size-5 text-zinc-400" />
             <input
               type="email"
-              name="email"
+              {...register("email")}
               placeholder="E-mail"
               className="flex-1 bg-transparent text-lg placeholder-zinc-400 outline-none"
             />
           </div>
 
+          {formState.errors.email && (
+            <span className="text-sm text-red-500">
+              {formState.errors.email.message}
+            </span>
+          )}
+
           <Button variant="primary" size="full">
-            Enviar convite
+            {formState.isSubmitting ? (
+              <span className="inline-flex items-center gap-2 font-medium">
+                <Loader2 className="size-5 animate-spin" />
+                Enviando convite...
+              </span>
+            ) : (
+              "Enviar convite"
+            )}
           </Button>
         </form>
       </div>
