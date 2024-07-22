@@ -1,4 +1,4 @@
-import { X, Tag, Calendar } from "lucide-react";
+import { X, Tag, Calendar, Loader2 } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +14,7 @@ interface CreateActivityModalProps {
 
 const activityFormSchema = z.object({
   title: z.string().min(1, { message: "O título é obrigatório." }),
-  occurs_at: z.string(),
+  occurs_at: z.string().min(1, { message: "Informe a data e a hora." }),
 });
 
 type ActivityFormSchema = z.infer<typeof activityFormSchema>;
@@ -26,7 +26,7 @@ export function CreateActivityModal({
 
   const queryClient = useQueryClient();
 
-  const { register, handleSubmit } = useForm<ActivityFormSchema>({
+  const { register, handleSubmit, formState } = useForm<ActivityFormSchema>({
     resolver: zodResolver(activityFormSchema),
   });
 
@@ -77,6 +77,12 @@ export function CreateActivityModal({
             />
           </div>
 
+          {formState.errors.title && (
+            <span className="text-sm text-red-500">
+              {formState.errors.title.message}
+            </span>
+          )}
+
           <div className="flex h-14 items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-4">
             <Calendar className="size-5 text-zinc-400" />
             <input
@@ -87,8 +93,21 @@ export function CreateActivityModal({
             />
           </div>
 
+          {formState.errors.occurs_at && (
+            <span className="text-sm text-red-500">
+              {formState.errors.occurs_at.message}
+            </span>
+          )}
+
           <Button variant="primary" size="full">
-            Salvar Atividade
+            {formState.isSubmitting ? (
+              <span className="inline-flex items-center gap-2 font-medium">
+                <Loader2 className="size-5 animate-spin" />
+                Salvando atividade...
+              </span>
+            ) : (
+              "Salvar atividade"
+            )}
           </Button>
         </form>
       </div>

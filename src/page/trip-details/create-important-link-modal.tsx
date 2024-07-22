@@ -1,4 +1,4 @@
-import { X, Tag, Link2 } from "lucide-react";
+import { X, Tag, Link2, Loader2 } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -26,7 +26,7 @@ export function CreateImportantLinkModal({
 
   const queryClient = useQueryClient();
 
-  const { register, handleSubmit } = useForm<LinkFormSchema>({
+  const { register, handleSubmit, formState } = useForm<LinkFormSchema>({
     resolver: zodResolver(linkFormSchema),
   });
 
@@ -77,6 +77,12 @@ export function CreateImportantLinkModal({
             />
           </div>
 
+          {formState.errors.title && (
+            <span className="text-sm text-red-500">
+              {formState.errors.title.message}
+            </span>
+          )}
+
           <div className="flex h-14 items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-4">
             <Link2 className="size-5 text-zinc-400" />
             <input
@@ -87,8 +93,21 @@ export function CreateImportantLinkModal({
             />
           </div>
 
+          {formState.errors.url && (
+            <span className="text-sm text-red-500">
+              {formState.errors.url.message}
+            </span>
+          )}
+
           <Button variant="primary" size="full">
-            Salvar Link
+            {formState.isSubmitting ? (
+              <span className="inline-flex items-center gap-2 font-medium">
+                <Loader2 className="size-5 animate-spin" />
+                Salvando link...
+              </span>
+            ) : (
+              "Salvar link"
+            )}
           </Button>
         </form>
       </div>
