@@ -1,6 +1,9 @@
 import { X, Tag, Link2 } from "lucide-react";
 import { useParams } from "react-router-dom";
-import { FormEvent } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "../../components/button";
 import { api } from "../../lib/axios";
@@ -9,25 +12,41 @@ interface CreateImportantLinkModalProps {
   closeCreateImportantLinkModal: () => void;
 }
 
+const linkFormSchema = z.object({
+  title: z.string().min(1, { message: "O título é obrigatório." }),
+  url: z.string().min(1, { message: "A URL é obrigatória." }),
+});
+
+type LinkFormSchema = z.infer<typeof linkFormSchema>;
+
 export function CreateImportantLinkModal({
   closeCreateImportantLinkModal,
 }: CreateImportantLinkModalProps) {
   const { tripId } = useParams();
 
-  async function createLink(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const queryClient = useQueryClient();
 
-    const data = new FormData(event.currentTarget);
+  const { register, handleSubmit } = useForm<LinkFormSchema>({
+    resolver: zodResolver(linkFormSchema),
+  });
 
-    const title = data.get("title")?.toString();
-    const url = data.get("url")?.toString();
+  const { mutateAsync } = useMutation({
+    mutationFn: async ({ title, url }: LinkFormSchema) => {
+      await api.post(`/trips/${tripId}/links`, {
+        title,
+        url,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get-links", tripId],
+      });
+      closeCreateImportantLinkModal();
+    },
+  });
 
-    await api.post(`/trips/${tripId}/links`, {
-      title,
-      url,
-    });
-
-    window.document.location.reload();
+  async function createLink({ title, url }: LinkFormSchema) {
+    await mutateAsync({ title, url });
   }
 
   return (
@@ -47,12 +66,12 @@ export function CreateImportantLinkModal({
           </p>
         </div>
 
-        <form onSubmit={createLink} className="space-y-3">
+        <form onSubmit={handleSubmit(createLink)} className="space-y-3">
           <div className="flex h-14 items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-4">
             <Tag className="size-5 text-zinc-400" />
             <input
               type="text"
-              name="title"
+              {...register("title")}
               placeholder="Nome do link"
               className="flex-1 bg-transparent text-lg placeholder-zinc-400 outline-none"
             />
@@ -62,7 +81,7 @@ export function CreateImportantLinkModal({
             <Link2 className="size-5 text-zinc-400" />
             <input
               type="text"
-              name="url"
+              {...register("url")}
               placeholder="Informe o link"
               className="flex-1 bg-transparent text-lg placeholder-zinc-400 outline-none"
             />
