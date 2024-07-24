@@ -1,21 +1,30 @@
-import { X, User } from "lucide-react";
-import { FormEvent } from "react";
+import { X, User, Loader2 } from "lucide-react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "../../components/button";
 
+const confirmTripFormSchema = z.object({
+  name: z.string().min(1, { message: "O nome completo é obrigatório." }),
+  email: z.string().email("O e-mail é obrigatório."),
+});
+
+type ConfirmTripFormSchema = z.infer<typeof confirmTripFormSchema>;
+
 interface ConfirmTripModalProps {
   closeConfirmTripModal: () => void;
-  createTrip: (event: FormEvent<HTMLFormElement>) => void;
-  setOwnerName: (name: string) => void;
-  setOwnerEmail: (email: string) => void;
+  createTrip: (data: ConfirmTripFormSchema) => void;
 }
 
 export function ConfirmTripModal({
   closeConfirmTripModal,
   createTrip,
-  setOwnerName,
-  setOwnerEmail,
 }: ConfirmTripModalProps) {
+  const { register, handleSubmit, formState } = useForm<ConfirmTripFormSchema>({
+    resolver: zodResolver(confirmTripFormSchema),
+  });
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/60">
       <div className="w-[640px] space-y-5 rounded-xl bg-zinc-900 px-6 py-5 shadow-shape">
@@ -43,31 +52,48 @@ export function ConfirmTripModal({
           </p>
         </div>
 
-        <form onSubmit={createTrip} className="space-y-3">
+        <form onSubmit={handleSubmit(createTrip)} className="space-y-3">
           <div className="flex h-14 items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-4">
             <User className="size-5 text-zinc-400" />
             <input
               type="text"
-              name="name"
+              {...register("name")}
               placeholder="Seu nome completo"
               className="flex-1 bg-transparent text-lg placeholder-zinc-400 outline-none"
-              onChange={(event) => setOwnerName(event.target.value)}
             />
           </div>
+
+          {formState.errors.name && (
+            <span className="text-sm text-red-500">
+              {formState.errors.name.message}
+            </span>
+          )}
 
           <div className="flex h-14 items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-4">
             <User className="size-5 text-zinc-400" />
             <input
-              type="text"
-              name="name"
+              type="email"
+              {...register("email")}
               placeholder="Seu e-mail pessoal"
               className="flex-1 bg-transparent text-lg placeholder-zinc-400 outline-none"
-              onChange={(event) => setOwnerEmail(event.target.value)}
             />
           </div>
 
+          {formState.errors.email && (
+            <span className="text-sm text-red-500">
+              {formState.errors.email.message}
+            </span>
+          )}
+
           <Button type="submit" variant="primary" size="full">
-            Confirmar criação da viagem
+            {formState.isSubmitting ? (
+              <span className="inline-flex items-center gap-2 font-medium">
+                <Loader2 className="size-5 animate-spin" />
+                Confirmando a criação da viagem...
+              </span>
+            ) : (
+              "Confirmar criação da viagem"
+            )}
           </Button>
         </form>
       </div>

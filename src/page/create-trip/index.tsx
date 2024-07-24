@@ -8,6 +8,11 @@ import { DestinationAndDateStep } from "./steps/destination-and-date-step";
 import { InviteGuestsSteps } from "./steps/invite-guests-step";
 import { api } from "../../lib/axios";
 
+type ConfirmTripModalProps = {
+  name: string;
+  email: string;
+};
+
 export function CreateTripPage() {
   const navigate = useNavigate();
 
@@ -16,8 +21,6 @@ export function CreateTripPage() {
   const [isConfirmTripModalOpen, setIsConfirmTripModalOpen] = useState(false);
 
   const [destination, setDestination] = useState("");
-  const [ownerName, setOwnerName] = useState("");
-  const [ownerEmail, setOwnerEmail] = useState("");
   const [eventStartAndEndDates, setEventStartAndEndDates] = useState<
     DateRange | undefined
   >();
@@ -98,27 +101,18 @@ export function CreateTripPage() {
     setEmailsToInvite(newEmailList);
   }
 
-  async function createTrip(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    console.log(destination);
-    console.log(eventStartAndEndDates);
-    console.log(emailsToInvite);
-    console.log(ownerName);
-    console.log(ownerEmail);
-
+  async function createTrip(data: ConfirmTripModalProps) {
     if (!destination) return;
     if (!eventStartAndEndDates?.from || !eventStartAndEndDates.to) return;
     if (emailsToInvite.length === 0) return;
-    if (!ownerName || !ownerEmail) return;
 
     const response = await api.post("/trips", {
       destination,
       starts_at: eventStartAndEndDates?.from,
       ends_at: eventStartAndEndDates.to,
       emails_to_invite: emailsToInvite,
-      owner_name: ownerName,
-      owner_email: ownerEmail,
+      owner_name: data.name,
+      owner_email: data.email,
     });
 
     const { tripId } = response.data;
@@ -184,8 +178,6 @@ export function CreateTripPage() {
         <ConfirmTripModal
           closeConfirmTripModal={closeConfirmTripModal}
           createTrip={createTrip}
-          setOwnerName={setOwnerName}
-          setOwnerEmail={setOwnerEmail}
         />
       )}
     </div>
