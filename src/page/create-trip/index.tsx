@@ -27,10 +27,7 @@ export function CreateTripPage() {
   const [dateErrors, setDatesErrors] = useState<string | null>(null);
   const [destinationError, setDestinationError] = useState(false);
 
-  const [emailsToInvite, setEmailsToInvite] = useState([
-    "wilkerguimaraes.07@gmail.com",
-    "john@acme.com",
-  ]);
+  const [emailsToInvite, setEmailsToInvite] = useState<string[]>([]);
 
   function validateDates() {
     if (!eventStartAndEndDates?.from || !eventStartAndEndDates.to) {
