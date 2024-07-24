@@ -1,8 +1,9 @@
 import { MapPin, Calendar, Settings2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "../../components/button";
 import { api } from "../../lib/axios";
@@ -18,11 +19,15 @@ interface Trip {
 
 export function DestinationAndDateHeader() {
   const { tripId } = useParams();
-  const [trip, setTrip] = useState<Trip | undefined>();
 
-  useEffect(() => {
-    api.get(`/trips/${tripId}`).then((response) => setTrip(response.data.trip));
-  }, [tripId]);
+  const { data: trip } = useQuery<Trip | undefined>({
+    queryKey: ["get-updatedTrip", tripId],
+    queryFn: async () => {
+      const response = await api.get(`/trips/${tripId}`);
+
+      return response.data.trip;
+    },
+  });
 
   const displayedDate = trip
     ? format(trip.starts_at, "d' de 'LLL", { locale: ptBR })

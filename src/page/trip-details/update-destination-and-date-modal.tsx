@@ -1,9 +1,13 @@
-import { X, MapPin, Calendar } from "lucide-react";
+import { X, MapPin, Calendar, Loader2 } from "lucide-react";
 import { useParams } from "react-router-dom";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DateRange, DayPicker } from "react-day-picker";
+import { z } from "zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "../../components/button";
 import { api } from "../../lib/axios";
@@ -11,6 +15,12 @@ import { api } from "../../lib/axios";
 interface UpdateDestinationAndDateModalProps {
   closeUpdateDestinationAndDateModal: () => void;
 }
+
+const updateTripFormSchema = z.object({
+  destination: z.string().min(1, { message: "Informe qual é o destino." }),
+});
+
+type UpdateTripFormSchema = z.infer<typeof updateTripFormSchema>;
 
 export function UpdateDestinationAndDateModal({
   closeUpdateDestinationAndDateModal,
@@ -20,6 +30,7 @@ export function UpdateDestinationAndDateModal({
   const [eventStartAndEndDates, setEventStartAndEndDates] = useState<
     DateRange | undefined
   >();
+  const [error, setError] = useState<string | null>(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   function openDatePicker() {
@@ -30,23 +41,55 @@ export function UpdateDestinationAndDateModal({
     return setIsDatePickerOpen(false);
   }
 
-  async function createLink(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const queryClient = useQueryClient();
 
-    const data = new FormData(event.currentTarget);
+  const { register, handleSubmit, formState } = useForm<UpdateTripFormSchema>({
+    resolver: zodResolver(updateTripFormSchema),
+  });
 
-    const destination = data.get("destination")?.toString();
+  const { mutateAsync } = useMutation({
+    mutationFn: async (data: {
+      destination: string;
+      starts_at: Date;
+      ends_at: Date;
+    }) => {
+      await api.put(`/trips/${tripId}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get-updatedTrip", tripId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["get-activities", tripId],
+      });
+      closeUpdateDestinationAndDateModal();
+    },
+  });
 
-    if (!destination) return;
-    if (!eventStartAndEndDates?.from || !eventStartAndEndDates.to) return;
+  function validateDates() {
+    if (!eventStartAndEndDates?.from || !eventStartAndEndDates.to) {
+      return "Informe a data e a hora.";
+    }
+    if (eventStartAndEndDates.from <= new Date()) {
+      return "A data de início deve ser após o dia atual.";
+    }
+    return null;
+  }
 
-    await api.put(`/trips/${tripId}`, {
-      destination,
-      starts_at: eventStartAndEndDates?.from,
-      ends_at: eventStartAndEndDates.to,
+  async function updateTrip(data: UpdateTripFormSchema) {
+    const validationError = validateDates();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    if (!eventStartAndEndDates) return;
+
+    await mutateAsync({
+      destination: data.destination,
+      starts_at: eventStartAndEndDates.from!,
+      ends_at: eventStartAndEndDates.to!,
     });
-
-    window.document.location.reload();
   }
 
   const displayedDate =
@@ -77,16 +120,22 @@ export function UpdateDestinationAndDateModal({
           </p>
         </div>
 
-        <form onSubmit={createLink} className="space-y-3">
+        <form onSubmit={handleSubmit(updateTrip)} className="space-y-3">
           <div className="flex h-14 items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-4">
             <MapPin className="size-5 text-zinc-400" />
             <input
               type="text"
-              name="destination"
+              {...register("destination")}
               placeholder="Para onde você vai?"
               className="flex-1 bg-transparent text-lg placeholder-zinc-400 outline-none"
             />
           </div>
+
+          {formState.errors.destination && (
+            <span className="text-sm text-red-500">
+              {formState.errors.destination.message}
+            </span>
+          )}
 
           <button
             onClick={openDatePicker}
@@ -97,6 +146,8 @@ export function UpdateDestinationAndDateModal({
               {displayedDate || "Quando?"}
             </span>
           </button>
+
+          {error && <span className="text-sm text-red-500">{error}</span>}
 
           {isDatePickerOpen && (
             <div className="fixed inset-0 flex items-center justify-center bg-black/60">
@@ -124,7 +175,14 @@ export function UpdateDestinationAndDateModal({
           )}
 
           <Button variant="primary" size="full">
-            Salvar alterações
+            {formState.isSubmitting ? (
+              <span className="inline-flex items-center gap-2 font-medium">
+                <Loader2 className="size-5 animate-spin" />
+                Salvando alterações...
+              </span>
+            ) : (
+              "Salvar alterações"
+            )}
           </Button>
         </form>
       </div>
