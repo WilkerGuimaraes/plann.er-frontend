@@ -21,13 +21,37 @@ export function CreateTripPage() {
   const [eventStartAndEndDates, setEventStartAndEndDates] = useState<
     DateRange | undefined
   >();
+  const [dateErrors, setDatesErrors] = useState<string | null>(null);
+  const [destinationError, setDestinationError] = useState(false);
 
   const [emailsToInvite, setEmailsToInvite] = useState([
     "wilkerguimaraes.07@gmail.com",
     "john@acme.com",
   ]);
 
+  function validateDates() {
+    if (!eventStartAndEndDates?.from || !eventStartAndEndDates.to) {
+      return "Informe o período da viagem.";
+    }
+    if (eventStartAndEndDates.from <= new Date()) {
+      return "A data de início deve ser após o dia atual.";
+    }
+    return null;
+  }
+
   function openGuestsInput() {
+    if (!destination) {
+      return setDestinationError(true);
+    }
+
+    setDestinationError(false);
+
+    const validationError = validateDates();
+    if (validationError) {
+      return setDatesErrors(validationError);
+    }
+
+    setDatesErrors(null);
     setIsGuestsInputOpen(true);
   }
 
@@ -120,6 +144,8 @@ export function CreateTripPage() {
             setDestination={setDestination}
             eventStartAndEndDates={eventStartAndEndDates}
             setEventStartAndEndDates={setEventStartAndEndDates}
+            dateErrors={dateErrors}
+            destinationError={destinationError}
           />
 
           {isGuestsInputOpen && (
